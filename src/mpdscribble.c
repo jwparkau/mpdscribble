@@ -100,12 +100,17 @@ static void song_changed(const struct mpd_song *song)
 
 	g_timer_start(timer);
 
-	as_now_playing(mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
-		       mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
-		       mpd_song_get_tag(song, MPD_TAG_ALBUM, 0),
-		       mpd_song_get_tag(song, MPD_TAG_TRACK, 0),
-		       mpd_song_get_tag(song, MPD_TAG_MUSICBRAINZ_TRACKID, 0),
-		       mpd_song_get_duration(song));
+	char* artist = mpd_song_get_tag(song, MPD_TAG_ARTIST, 0);
+	char *s = strtok(artist, ",");
+	if (s != NULL)
+		strcpy(artist, s);
+
+	as_now_playing(artist,
+			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
+			mpd_song_get_tag(song, MPD_TAG_ALBUM, 0),
+			mpd_song_get_tag(song, MPD_TAG_TRACK, 0),
+			mpd_song_get_tag(song, MPD_TAG_MUSICBRAINZ_TRACKID, 0),
+			mpd_song_get_duration(song));
 }
 
 /**
@@ -176,17 +181,22 @@ song_ended(const struct mpd_song *song, bool love)
 
 	/* FIXME:
 	   libmpdclient doesn't have any way to fetch the musicbrainz id. */
+	char* artist = mpd_song_get_tag(song, MPD_TAG_ARTIST, 0);
+	char *s = strtok(artist, ",");
+	if (s != NULL)
+		strcpy(artist, s);
+
 	as_songchange(mpd_song_get_uri(song),
-		      mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
-		      mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
-		      mpd_song_get_tag(song, MPD_TAG_ALBUM, 0),
-		      mpd_song_get_tag(song, MPD_TAG_TRACK, 0),
-		      mpd_song_get_tag(song, MPD_TAG_MUSICBRAINZ_TRACKID, 0),
-		      mpd_song_get_duration(song) > 0
-		      ? mpd_song_get_duration(song)
-		      : g_timer_elapsed(timer, NULL),
-		      love,
-		      NULL);
+			artist,
+			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
+			mpd_song_get_tag(song, MPD_TAG_ALBUM, 0),
+			mpd_song_get_tag(song, MPD_TAG_TRACK, 0),
+			mpd_song_get_tag(song, MPD_TAG_MUSICBRAINZ_TRACKID, 0),
+			mpd_song_get_duration(song) > 0
+			? mpd_song_get_duration(song)
+			: g_timer_elapsed(timer, NULL),
+			love,
+			NULL);
 }
 
 int main(int argc, char **argv)
